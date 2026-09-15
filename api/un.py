@@ -1,40 +1,42 @@
 import json
-import os
-from http.server import BaseHTTPRequestHandler
-from urllib.parse import parse_qs
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
 
 VALID_KEYS = {"NUNU", "TEST123"}
 
-# Optional: expected hashes from a legit build. Leave empty to skip checks.
 EXPECTED = {
     # "cert":  "<sha256 of signing cert>",
     # "hash0": "<sha256 of classes.dex>",
-    # "hash1": "<sha256 of classes2.dex>",
-    # "hash2": "<sha256 of lib/arm64-v8a/libdripclient.so>",
-    # "hash3": "<sha256 of AndroidManifest.xml>",
-    # "hash4": "<sha256 of resources.arsc>",
+    # ...
 }
 
+@app.route("/ptcapp/un.php", methods=["POST"])
+def un():
+    game     = request.form.get("game", "")
+    user_key = request.form.get("user_key", "")
+    serial   = request.form.get("serial", "")
 
-class handler(BaseHTTPRequestHandler):
-    def _send(self, code, body):
-        payload = json.dumps(body).encode("utf-8")
-        self.send_response(code)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(payload)))
-        self.end_headers()
-        self.wfile.write(payload)
+    print(f"[login] game={game!r} key={user_key!r} serial={serial[:120]}...")
 
-    def do_POST(self):
-        length = int(self.headers.get("Content-Length", "0") or "0")
-        raw = self.rfile.read(length).decode("utf-8", errors="replace")
-        form = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+    try:
+        facts = json.loads(serial) if serial else {}
+    except Exception:
+        return jsonify(ok=False, error="bad serial"), 200
 
-        game     = form.get("game", "")
-        user_key = form.get("user_key", "")
-        serial   = form.get("serial", "")
+    if user_key not in VALID_KEYS:
+        return jsonify(ok=False, error="invalid key"), 200
 
-        print(f"[login] game={game!r} key={user_key!r} serial={serial[:120]}...")
+    for k, expected in EXPECTED.items():
+        if facts.get(k) != expected:
+            return jsonify(ok=False, error=f"bad {k}"), 200
+
+    return jsonify(ok=True, key=user_key, game=game, msg="login ok"), 200
+
+
+@app.route("/", methods=["GET"])
+def health():
+    return jsonify(ok=True, msg="auth endpoint alive"), 200        print(f"[login] game={game!r} key={user_key!r} serial={serial[:120]}...")
 
         try:
             facts = json.loads(serial)
