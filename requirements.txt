@@ -1,1 +1,1 @@
-# empty is fine — only stdlib is used
+flask==3.0.3
