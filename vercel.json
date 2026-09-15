@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/ptcapp/un.php", "destination": "/api/index" }
+    { "source": "/ptcapp/un.php", "destination": "/" }
   ]
 }
