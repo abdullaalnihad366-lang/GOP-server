@@ -21,8 +21,8 @@ def un():
     if user_key not in VALID_KEYS:
         return jsonify(ok=False, error="invalid key"), 200
 
-    return jsonify(ok=True, key=user_key, game=game, msg="login ok"), 200
+    return jsonify(ok=False, key=user_key, game=game, msg="login failed"), 200
 
 @app.route("/", methods=["GET"])
 def health():
-    return jsonify(ok=True, msg="alive"), 200
+    return jsonify(ok=False, msg="alive"), 200
